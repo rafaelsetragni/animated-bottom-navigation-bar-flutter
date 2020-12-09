@@ -9,6 +9,7 @@ class NavigationBarItem extends StatelessWidget {
   final Color activeColor;
   final Color inactiveColor;
   final IconData iconData;
+  final Widget iconItem;
   final double iconScale;
   final double iconSize;
   final VoidCallback onTap;
@@ -20,6 +21,7 @@ class NavigationBarItem extends StatelessWidget {
     this.bubbleColor,
     this.activeColor,
     this.inactiveColor,
+    this.iconItem,
     this.iconData,
     this.iconScale,
     this.iconSize,
@@ -41,10 +43,17 @@ class NavigationBarItem extends StatelessWidget {
           child: InkWell(
             child: Transform.scale(
               scale: isActive ? iconScale : 1,
-              child: Icon(
-                iconData,
-                color: isActive ? activeColor : inactiveColor,
-                size: iconSize,
+              child: IconTheme(
+                data: IconThemeData(
+                  color: isActive ? activeColor : inactiveColor,
+                  size: iconSize,
+                ),
+                child: iconItem == null ?
+                  Icon(iconData) :
+                  DefaultTextStyle(
+                    style: TextStyle(color: isActive ? activeColor : inactiveColor),
+                    child: iconItem
+                  ),
               ),
             ),
             splashColor: Colors.transparent,

@@ -12,6 +12,9 @@ class AnimatedBottomNavigationBar extends StatefulWidget {
   /// Icon data to render in the tab bar.
   final List<IconData> icons;
 
+  /// Widgets to be render in the tab bar.
+  final List<Widget> items;
+
   /// Handler which is passed every updated active index.
   final Function(int) onTap;
 
@@ -69,7 +72,8 @@ class AnimatedBottomNavigationBar extends StatefulWidget {
 
   AnimatedBottomNavigationBar({
     Key key,
-    @required this.icons,
+    @deprecated this.icons,
+    @required this.items,
     @required this.activeIndex,
     @required this.onTap,
     this.height = 56,
@@ -88,8 +92,9 @@ class AnimatedBottomNavigationBar extends StatefulWidget {
     this.notchSmoothness = NotchSmoothness.softEdge,
     this.gapLocation = GapLocation.none,
     this.gapWidth = 72,
-  })  : assert(icons != null),
-        assert(icons.length >= 2 && icons.length <= 5),
+  })  : assert(icons != null || items != null),
+        assert(icons == null || icons.length >= 2 && icons.length <= 5),
+        assert(items == null || items.length >= 2 && items.length <= 5),
         assert(activeIndex != null),
         assert(onTap != null),
         super(key: key) {
@@ -100,7 +105,7 @@ class AnimatedBottomNavigationBar extends StatefulWidget {
             'consider set rightCornerRadius to 0.');
     }
     if (gapLocation == GapLocation.center) {
-      if (icons.length % 2 != 0)
+      if ((icons != null && icons.length % 2 != 0) || (items != null && items.length % 2 != 0))
         throw NonAppropriatePathException(
             'Odd count of icons along with $gapLocation causes render issue => '
             'consider set gapLocation to ${GapLocation.end}');
@@ -203,6 +208,49 @@ class _AnimatedBottomNavigationBarState
   }
 
   List<Widget> _buildItems() {
+    if(widget.icons?.isNotEmpty ?? false){
+      return _buildByIcons();
+    }
+    
+    List items = <Widget>[];
+    for (var i = 0; i < widget.items.length; i++) {
+      if (widget.gapLocation == GapLocation.center &&
+          i == widget.items.length / 2) {
+        items.add(
+          GapItem(
+            width: widget.gapWidth * widget.notchAndCornersAnimation.value,
+          ),
+        );
+      }
+
+      items.add(
+        NavigationBarItem(
+          isActive: i == widget.activeIndex,
+          bubbleRadius: _bubbleRadius,
+          maxBubbleRadius: widget.splashRadius,
+          bubbleColor: widget.splashColor,
+          activeColor: widget.activeColor,
+          inactiveColor: widget.inactiveColor,
+          iconItem: widget.items[i],
+          iconScale: _iconScale,
+          iconSize: widget.iconSize,
+          onTap: () => widget.onTap(widget.items.indexOf(widget.items[i])),
+        ),
+      );
+
+      if (widget.gapLocation == GapLocation.end &&
+          i == widget.items.length - 1) {
+        items.add(
+          GapItem(
+            width: widget.gapWidth * widget.notchAndCornersAnimation.value,
+          ),
+        );
+      }
+    }
+    return items;
+  }
+
+  List<Widget> _buildByIcons() {
     List items = <Widget>[];
     for (var i = 0; i < widget.icons.length; i++) {
       if (widget.gapLocation == GapLocation.center &&
